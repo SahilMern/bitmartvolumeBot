@@ -1,4 +1,4 @@
-console.log("JAI HANUMAN JI ");
+console.log("JAI SHREE RAM / JAI HANUMAN JI ");
 const axios = require("axios");
 const { log } = require("console");
 const crypto = require("crypto");
@@ -8,8 +8,9 @@ const API_SECRET =
 const API_MEMO = "cryptotredingbot";
 const BASE_URL = "https://api-cloud.bitmart.com";
 let currentAction = "buy";
-let buyAmount = 0; // Variable to store the amount used for buying
-
+let setedBuysize = 0;
+let setBuyPrice = 0; // Variable to store the amount used for buying
+console.log(setBuyPrice,"setBuyPrice");
 // Get current timestamp
 function get_timestamp() {
   return new Date().getTime().toString();
@@ -36,6 +37,9 @@ const getOverallprice = async () => {
 
 // Function to place order
 async function place_order(side, symbol, size, price) {
+  console.log(side, symbol, size, price);
+  
+  // await place_order("buy", "DEOD_USDT", size, getDeodPrice)
   const path = "/spot/v2/submit_order";
   const timestamp = get_timestamp();
   const body = {
@@ -62,40 +66,51 @@ async function place_order(side, symbol, size, price) {
 }
 
 // Function to generate a random number between min and max
-function getRandomNumber(min, max) {
+function randomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Function to continuously alternate buy and sell orders
 async function alternate_orders() {
   while (true) {
     // Detect current action and place order accordingly
     if (currentAction === "buy") {
-      const getPrice = await getOverallprice();
-      const randomSize = getRandomNumber(6, 20); // Generate random size between 6 and 20
-      console.log(randomSize, "size");
-      console.log(getPrice, "getPrice");
-      const size = randomSize/getPrice;
-      console.log(size);
-      await place_order("buy", "DEOD_USDT", size, getPrice);
-      buyAmount = size / getPrice;
-      console.log(buyAmount); // Store the amount used for buying
-      currentAction = "sell"; // Switch action to sell
+      const getDeodPrice = await getOverallprice();
+      console.log(getDeodPrice, "DEOD PRICE BETWEEN TWO NUMBERS");
+      const randomUsdtPrice = randomNumber(6, 8);
+      console.log(randomUsdtPrice, "RANDOM USDT PRICE");
+      const size = Math.floor(randomUsdtPrice / getDeodPrice);
+      console.log(size, "SIZE FOR BUY");
+      // await place_order("buy", "DEOD_USDT", size, getDeodPrice);
+      currentAction = "sell";
+      setedBuysize= size;
+      setBuyPrice =getDeodPrice;
+      // process.exit()
+
+      // setRandomSize = randomSizegenrate;
+      // console.log(setRandomSize, "randomSize");
+      // currentAction = "sell"; // Switch action to sell
+      // setBuyPrice= getPrice;
+      // console.log("I AM INSIDE BUY FUNCTION");
     } else {
-      const size = getRandomNumber(6, 20); // Generate random size between 6 and 20
-      console.log(buyAmount, "buyAmount");
-      process.exit()
-      await place_order("sell", "DEOD_USDT", size, buyAmount); // Sell using the stored amount
+
+      console.log(setBuyPrice,setedBuysize);
+      const size = setedBuysize * setBuyPrice;
+      console.log( size, "Size inside buy");
+      // await place_order("sell", "DEOD_USDT", 3361 , 0.001511); // Sell using the stored amount
       currentAction = "buy"; // Switch action to buy
+      console.log("I AM INSIDE SELL FUNCTION", currentAction);
     }
+
+    // Introduce a delay of 10 seconds
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
 
 const startBot = async () => {
-    await alternate_orders()
+  await alternate_orders();
 };
 
 const stopBot = async () => {
-    await alternate_orders();
+  await alternate_orders();
 };
-module.exports = {startBot, stopBot};
+module.exports = { startBot, stopBot };
